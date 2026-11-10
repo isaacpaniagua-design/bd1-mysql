@@ -1,0 +1,54 @@
+# Bases de Datos I · ITSON Campus Guaymas
+# Tres contenedores que comparten la misma red (localhost):
+#   db          MySQL 8.4 LTS con las bases de práctica precargadas
+#   phpmyadmin  interfaz web en el puerto 8080
+#   app         donde corre VS Code y la terminal
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: bd1
+      TZ: America/Hermosillo
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      # Igual que MySQL en Windows: los nombres de bases y tablas no distinguen mayúsculas
+      - --lower-case-table-names=1
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # Solo se ejecutan la PRIMERA vez que se crea el codespace
+      - ../db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-pbd1"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    restart: unless-stopped
+    network_mode: service:db
+    environment:
+      APACHE_PORT: 8080
+      PMA_HOST: 127.0.0.1
+      PMA_USER: root
+      PMA_PASSWORD: bd1
+      UPLOAD_LIMIT: 64M
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu-24.04
+    network_mode: service:db
+    command: sleep infinity
+    volumes:
+      - ../..:/workspaces:cached
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  mysql-data:

@@ -1,0 +1,43 @@
+{
+  "name": "Bases de Datos I · MySQL 8.4",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "runServices": ["db", "phpmyadmin", "app"],
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "shutdownAction": "stopCompose",
+
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": { "label": "phpMyAdmin", "onAutoForward": "openPreview" },
+    "3306": { "label": "MySQL", "onAutoForward": "silent" }
+  },
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["LEEME.md", "practicas/01_prueba.sql"]
+    },
+    "vscode": {
+      "extensions": [
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-mysql"
+      ],
+      "settings": {
+        "sqltools.connections": [
+          {
+            "name": "MySQL del curso",
+            "driver": "MySQL",
+            "server": "127.0.0.1",
+            "port": 3306,
+            "username": "root",
+            "password": "bd1",
+            "database": "practica"
+          }
+        ],
+        "sqltools.autoConnectTo": "MySQL del curso",
+        "files.encoding": "utf8"
+      }
+    }
+  }
+}
